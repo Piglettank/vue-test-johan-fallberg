@@ -1,6 +1,6 @@
 <template>
   <table class="table-auto mx-auto my-10">
-    <thead>
+    <thead align="left">
       <th
         class="px-4 py-2"
         v-text="'Namn'"
@@ -49,11 +49,11 @@
         />
         <td
           class="border px-4 py-2"
-          v-text="user.profession_id"
+          v-text="professionName(user)"
         />
         <td
           class="border px-4 py-2"
-          v-text="user.country_id"
+          v-text="countryName(user)"
         />
         <td
           class="border px-4 py-2"
@@ -76,7 +76,7 @@
 <script>
 // import User from './User';
 import { mapState, mapActions } from 'vuex'
-import ButtonComponent from './Button.vue';
+import ButtonComponent from './Button';
 
 export default {
   name: 'UserList',
@@ -92,6 +92,7 @@ export default {
     ...mapState({
         users: state => state.userModule.users,
         professions: state => state.professionModule.professions,
+        countries: state => state.countryModule.countries
     }),
   },
   methods: {
@@ -101,14 +102,23 @@ export default {
     removeRow(user) {
       this.removeUser(user);
     },
+    // returns age as int
     userAge(user) {
-      const birthDate = user.birthDate;
       const todaysDate = Date.now();
-      const birthDateInMilliseconds = (new Date(birthDate)).getTime();
-      const ageInMilliSeconds;
-      const age = (new Date()).getUTCFullYear() - 1970;
+      const birthDateInMilliseconds = (new Date(user.birthDate)).getTime();
+      const age = (new Date(todaysDate)).getUTCFullYear() - (new Date(birthDateInMilliseconds)).getUTCFullYear();
       return age;
     },
+    professionName(user) {
+      let index = this.professions.findIndex(profession => profession.value === Number.parseInt(user.profession_id));
+      if(index === -1) { index = 0; }
+      return this.professions[index].text;
+    },
+    countryName(user) {
+      let index = this.countries.findIndex(country => country.value === Number.parseInt(user.country_id));
+      if(index === -1) { index = 0; }
+      return this.countries[index].text;
+    }
   },
 }
 </script>

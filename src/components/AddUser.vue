@@ -12,8 +12,9 @@
           id="grid-first-name"
           type="text"
           placeholder="Enter First Name"
-          v-model="firstName"
+          v-model="user.firstName"
         >
+        <p class="block bg-red-200 text-s pb-2 pr-3 pl-3 pt-2 mb-5" v-if="errorMessages.firstName">{{ errorMessages.firstName }}</p>
       </div>
       <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
         <label
@@ -26,8 +27,9 @@
           id="grid-last-name"
           type="text"
           placeholder="Enter Last Name"
-          v-model="firstName"
+          v-model="user.lastName"
         >
+        <p class="block bg-red-200 text-s pb-2 pr-3 pl-3 pt-2 mb-5" v-if="errorMessages.lastName">{{ errorMessages.lastName }}</p>
       </div>
       <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
         <label
@@ -39,8 +41,9 @@
           class="appearance-none block w-full bg-gray-200 text-gray-700 border rounded py-3 px-4 mb-3 leading-tight focus:outline-none focus:bg-white"
           id="grid-date"
           type="date"
-          v-model="birthDate"
+          v-model="user.birthDate"
         >
+        <p class="block bg-red-200 text-s pb-2 pr-3 pl-3 pt-2 mb-5" v-if="errorMessages.birthDate">{{ errorMessages.birthDate }}</p>
       </div>
       <div class="w-full md:w-1/3 px-3 mb-6 md:mb-0">
         <label
@@ -53,17 +56,23 @@
           id="grid-quote"
           type="text"
           placeholder="Enter Quote"
-          v-model="quote"
+          v-model="user.quote"
         >
+        <p class="block bg-red-200 text-s pb-2 pr-3 pl-3 pt-2 mb-5" v-if="errorMessages.quote">{{ errorMessages.quote }}</p>
       </div>
       <drop-down
         :options="professions"
         :changeSelect="selectProfession"
+        label="Profession"
       />
-      <drop-down />
+      <drop-down
+        :options="countries"
+        :changeSelect="selectCountry"
+        label="Country"
+      />
     </div>
     <button-component
-      :on-click="addUser"
+      :on-click="addNewUser"
       :button-text="'Save User'"
     />
   </form>
@@ -78,12 +87,13 @@ export default {
   name: 'AddUser',
   data() {
     return {
-      user: {
-        firstName: '',
-        lastName: '',
-        birthDate: null,
-        quote: '',
+      errorMessages: {
+        firstName: "",
+        lastName: "",
+        birthDate: "",
+        quote: "",
       },
+      user: this.emptyUser(),
     };
   },
   components: {
@@ -93,17 +103,52 @@ export default {
   computed: {
     ...mapState({
       professions: state => state.professionModule.professions,
+      countries: state => state.countryModule.countries
     }),
   },
   methods: {
     ...mapMutations({
       setProfession: 'SET_PROFESSION',
+      setCountry: 'SET_COUNTRY',
     }),
     ...mapActions([
-      'addNewUsers',
+      'addUser',
     ]),
-    addUser() {
-      this.addNewUser(this.user);
+    addNewUser() {
+      if(this.validate()) {
+        this.addUser(this.user);
+        this.user = this.emptyUser();
+      }
+    },
+    selectProfession(professionsValue) {
+      this.user.profession_id = professionsValue;
+    },
+    selectCountry(countryValue) {
+      this.user.country_id = countryValue;
+    },
+    emptyUser() {
+      return {
+        firstName: '',
+        lastName: '',
+        birthDate: null,
+        quote: '',
+        profession_id: 1,
+        country_id: 1,
+      }
+    },
+    // Ensures all required fields are filled in. Returns true if all necessary info is there
+    validate() {
+      let hasError = false;
+      for(let entry of Object.entries(this.user)) {
+        if(!entry[1] || entry[1].length < 1) {
+          this.errorMessages[entry[0]] = "Please fill in the information above";
+          hasError = true;
+        }
+        else {
+          this.errorMessages[entry[0]] = "";
+        }
+      }
+      return !hasError;
     }
   },
 }
